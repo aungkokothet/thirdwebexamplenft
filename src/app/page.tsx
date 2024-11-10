@@ -28,12 +28,17 @@ export default function Home() {
     fetchChains();
   }, []);
 
+  // Find the selected chain or default to a placeholder chain if undefined
+  const selectedChain = chains.find((chain) => chain.chain_id === network) || chains[0];
+
   // Set up contract based on selected network and address
-  const contract = getContract({
-    client,
-    address: contractAddress,
-    chain: chains.find((chain) => chain.chain_id === network),
-  });
+  const contract = selectedChain
+    ? getContract({
+        client,
+        address: contractAddress,
+        chain: selectedChain,
+      })
+    : null;
 
   // Use readContract to fetch contract metadata URI
   const { data, isLoading } = useReadContract({
