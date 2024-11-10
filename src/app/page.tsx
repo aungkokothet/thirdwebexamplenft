@@ -24,11 +24,11 @@ export default function Home() {
     if (path) {
       setContractAddress(path);
     } else {
-      setIsError(true); // Handle case where no contract address is provided
+      setIsError(true); // Set error if no contract address is provided
     }
   }, []);
 
-  // Only proceed if contractAddress is available
+  // Initialize the contract only if contractAddress is set
   const contract = contractAddress
     ? getContract({
         client,
@@ -77,8 +77,16 @@ export default function Home() {
       <div className="py-20">
         <h1 className="text-3xl font-semibold text-white mb-6">Contract Metadata</h1>
 
-        {/* Error Message */}
-        {isError && (
+        {/* Fallback Message if No Contract Address is Provided */}
+        {!contractAddress && (
+          <div className="mt-4 p-4 bg-gray-800 text-white rounded">
+            <p>Please add a contract address to the URL, like this:</p>
+            <code className="block mt-2 text-blue-400">https://yourdomain.com/[contractAddress]</code>
+          </div>
+        )}
+
+        {/* Error Message if Contract Address is Invalid */}
+        {isError && contractAddress && (
           <div className="mt-4 p-4 bg-red-600 text-white rounded">
             <p>Error loading metadata. Please check the contract address.</p>
           </div>
