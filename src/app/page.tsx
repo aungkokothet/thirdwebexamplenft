@@ -1,29 +1,37 @@
 "use client";
 
 import Image from "next/image";
-import { ConnectButton, useContract } from "thirdweb/react";
+import { ConnectButton, useReadContract } from "thirdweb/react";
+import { getContract } from "thirdweb";
+import { polygon, zkevmTestnet } from "thirdweb/chains";
 import { useState } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
 export default function Home() {
-  // State to store user inputs
   const [contractAddress, setContractAddress] = useState("");
-  const [network, setNetwork] = useState("polygon"); // Default to polygon
+  const [network, setNetwork] = useState("polygon");
   const [metadata, setMetadata] = useState<string | null>(null);
 
-  // Function to read metadata from the contract
-  const fetchMetadata = async () => {
-    try {
-      // Define which chain to use based on selection
-      const chainId = network === "polygon" ? 137 : 80001; // Polygon mainnet or zkEVM-Cardano Testnet
+  // Set up contract based on selected network and address
+  const contract = getContract({
+    client,
+    address: contractAddress,
+    chain: network === "polygon" ? polygon : zkevmTestnet,
+  });
 
-      const contract = await useContract(client, contractAddress, { chainId });
-      const data = await contract.call("contractURI");
+  // Use readContract to fetch contract metadata URI
+  const { data, isLoading } = useReadContract({
+    contract,
+    method: "function contractURI() view returns (string)",
+    params: [],
+  });
+
+  const fetchMetadata = () => {
+    if (data) {
       setMetadata(data);
-    } catch (error) {
-      console.error("Failed to fetch metadata:", error);
-      setMetadata(null);
+    } else {
+      console.error("Failed to fetch metadata");
     }
   };
 
@@ -74,9 +82,10 @@ export default function Home() {
         {/* Fetch metadata button */}
         <button
           onClick={fetchMetadata}
+          disabled={isLoading}
           className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium"
         >
-          Fetch Contract Metadata
+          {isLoading ? "Loading..." : "Fetch Contract Metadata"}
         </button>
 
         {/* Display the metadata result */}
