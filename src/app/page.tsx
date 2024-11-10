@@ -7,10 +7,12 @@ import { useState } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
-// Simple chain options with two networks: Polygon zkEVM Testnet and Polygon Mainnet
+// Import required chains explicitly
+import { polygon, polygonZkEvmTestnet } from "thirdweb/chains";
+
 const supportedChains = [
-  { id: "polygon", name: "Polygon Mainnet" },
-  { id: "polygon-zkevm-testnet", name: "Polygon zkEVM Testnet" },
+  { id: "polygon", name: "Polygon Mainnet", chain: polygon },
+  { id: "polygon-zkevm-testnet", name: "Polygon zkEVM Testnet", chain: polygonZkEvmTestnet },
 ];
 
 export default function Home() {
@@ -18,12 +20,17 @@ export default function Home() {
   const [network, setNetwork] = useState(supportedChains[0].id);
   const [metadata, setMetadata] = useState<string | null>(null);
 
+  // Determine selected chain based on user selection
+  const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain;
+
   // Set up the contract object based on selected network and address
-  const contract = getContract({
-    client,
-    address: contractAddress,
-    chain: network,
-  });
+  const contract = selectedChain
+    ? getContract({
+        client,
+        address: contractAddress,
+        chain: selectedChain, // Pass the imported chain object directly
+      })
+    : null;
 
   // Use readContract to fetch contract metadata URI with resolveMethod
   const { data, isLoading } = useReadContract({
