@@ -45,7 +45,10 @@ export default function Home() {
         .then((meta) => {
           // Construct a valid image URL from IPFS
           const imageIpfsPath = meta.image.replace("ipfs://", "");
-          setImageUrl(`https://ipfs.io/ipfs/${imageIpfsPath}`);
+          const formattedImageUrl = `https://ipfs.io/ipfs/${imageIpfsPath}`;
+          console.log("Image URL:", formattedImageUrl); // Debugging: Check the image URL
+          
+          setImageUrl(formattedImageUrl);
           setDescription(meta.description);
           setName(meta.name);
           setIsError(false);
