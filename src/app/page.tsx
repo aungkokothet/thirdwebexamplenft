@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ConnectButton, useReadContract } from "thirdweb/react";
-import { getContract, resolveMethod } from "thirdweb";
+import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
@@ -27,10 +27,10 @@ export default function Home() {
     chain: selectedChain,
   });
 
-  // Only call `resolveMethod("contractURI")` without conditions in hook
+  // Directly specify the Solidity function signature
   const { data, isLoading } = useReadContract({
     contract,
-    method: resolveMethod("contractURI"),
+    method: "function contractURI() view returns (string)",
   });
 
   useEffect(() => {
