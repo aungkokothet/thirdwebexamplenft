@@ -23,20 +23,22 @@ export default function Home() {
   // Determine selected chain based on user selection
   const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain;
 
-  // Set up the contract object based on selected network and address
-  const contract = selectedChain
+  // Only define contract if a chain and address are selected
+  const contract = selectedChain && contractAddress
     ? getContract({
         client,
         address: contractAddress,
-        chain: selectedChain, // Pass the imported chain object directly
+        chain: selectedChain,
       })
-    : null;
+    : undefined;
 
-  // Use readContract to fetch contract metadata URI with resolveMethod
-  const { data, isLoading } = useReadContract({
-    contract,
-    method: resolveMethod("contractURI"),
-  });
+  // Use readContract only if contract is defined
+  const { data, isLoading } = contract
+    ? useReadContract({
+        contract,
+        method: resolveMethod("contractURI"),
+      })
+    : { data: null, isLoading: false };
 
   // Update metadata state when data is fetched
   const fetchMetadata = () => {
