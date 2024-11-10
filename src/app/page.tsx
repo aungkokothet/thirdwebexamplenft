@@ -6,28 +6,20 @@ import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
-import { polygon, polygonZkEvmTestnet } from "thirdweb/chains";
-
-// Define the chains available
-const supportedChains = [
-  { id: "polygon", name: "Polygon Mainnet", chain: polygon },
-  { id: "polygon-zkevm-testnet", name: "Polygon zkEVM Testnet", chain: polygonZkEvmTestnet },
-];
+import { polygonZkEvmTestnet } from "thirdweb/chains";
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
-  const [network, setNetwork] = useState(supportedChains[0].id);
   const [metadata, setMetadata] = useState<string | null>(null);
 
-  const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain || polygon;
-
+  // Set up the contract on Polygon zkEVM Testnet
   const contract = getContract({
     client,
     address: contractAddress || "0x0000000000000000000000000000000000000000",
-    chain: selectedChain,
+    chain: polygonZkEvmTestnet,
   });
 
-  // Directly specify the Solidity function signature
+  // Directly specify the Solidity function signature for contractURI
   const { data, isLoading } = useReadContract({
     contract,
     method: "function contractURI() view returns (string)",
@@ -65,23 +57,6 @@ export default function Home() {
             placeholder="Enter contract address"
             className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
           />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Select Network
-          </label>
-          <select
-            value={network}
-            onChange={(e) => setNetwork(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
-          >
-            {supportedChains.map((chain) => (
-              <option key={chain.id} value={chain.id}>
-                {chain.name}
-              </option>
-            ))}
-          </select>
         </div>
 
         <button
