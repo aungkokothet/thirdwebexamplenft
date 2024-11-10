@@ -3,11 +3,9 @@
 import Image from "next/image";
 import { ConnectButton, useReadContract } from "thirdweb/react";
 import { getContract, resolveMethod } from "thirdweb";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
-
-// Import required chains explicitly
 import { polygon, polygonZkEvmTestnet } from "thirdweb/chains";
 
 const supportedChains = [
@@ -20,34 +18,25 @@ export default function Home() {
   const [network, setNetwork] = useState(supportedChains[0].id);
   const [metadata, setMetadata] = useState<string | null>(null);
 
-  // Determine selected chain based on user selection
   const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain;
-
-  // Only define contract if a chain and address are selected
   const contract = selectedChain && contractAddress
     ? getContract({
         client,
         address: contractAddress,
         chain: selectedChain,
       })
-    : undefined;
+    : null;
 
-  // Use readContract only if contract is defined
-  const { data, isLoading } = contract
-    ? useReadContract({
-        contract,
-        method: resolveMethod("contractURI"),
-      })
-    : { data: null, isLoading: false };
+  const { data, isLoading } = useReadContract({
+    contract: contract ?? { address: "", client, chain: polygon },
+    method: contract ? resolveMethod("contractURI") : null,
+  });
 
-  // Update metadata state when data is fetched
-  const fetchMetadata = () => {
+  useEffect(() => {
     if (data) {
       setMetadata(data);
-    } else {
-      console.error("Failed to fetch metadata");
     }
-  };
+  }, [data]);
 
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
@@ -64,7 +53,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Contract address input */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Contract Address
@@ -78,7 +66,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Network selection */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Select Network
@@ -96,16 +83,14 @@ export default function Home() {
           </select>
         </div>
 
-        {/* Fetch metadata button */}
         <button
-          onClick={fetchMetadata}
+          onClick={() => setMetadata(data || "Fetching...")}
           disabled={isLoading}
           className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium"
         >
           {isLoading ? "Loading..." : "Fetch Contract Metadata"}
         </button>
 
-        {/* Display the metadata result */}
         {metadata && (
           <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
             <h3 className="text-lg font-semibold mb-2">Contract Metadata (IPFS)</h3>
