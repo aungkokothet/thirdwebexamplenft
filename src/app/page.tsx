@@ -11,8 +11,11 @@ const myChain = defineChain(2442); // Polygon zkEVM Testnet
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
-  const [metadata, setMetadata] = useState<string | null>(null);
+  const [metadataUri, setMetadataUri] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
 
   const contract = getContract({
     client,
@@ -27,12 +30,21 @@ export default function Home() {
 
   useEffect(() => {
     if (data) {
-      setMetadata(data);
-      // Fetch metadata from IPFS to retrieve the image URL
-      fetch(`https://ipfs.io/ipfs/${data}`)
+      setMetadataUri(data);
+
+      // Fetch metadata from IPFS to retrieve the JSON data
+      fetch(`https://ipfs.io/ipfs/${data.replace("ipfs://", "")}`)
         .then((response) => response.json())
-        .then((meta) => setImageUrl(meta.image))
-        .catch(console.error);
+        .then((meta) => {
+          setImageUrl(meta.image.replace("ipfs://", "https://ipfs.io/ipfs/"));
+          setDescription(meta.description);
+          setName(meta.name);
+          setIsError(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching metadata from IPFS:", error);
+          setIsError(true);
+        });
     }
   }, [data]);
 
@@ -55,37 +67,44 @@ export default function Home() {
         </div>
 
         <button
-          onClick={() => setMetadata(data || "Fetching...")}
+          onClick={() => setMetadataUri(data || "Fetching...")}
           disabled={isLoading}
           className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium"
         >
           {isLoading ? "Loading..." : "Fetch Contract Metadata"}
         </button>
 
-        {metadata && (
+        {isError && (
+          <div className="mt-4 p-4 bg-red-600 text-white rounded">
+            <p>Error loading metadata. Please try again later.</p>
+          </div>
+        )}
+
+        {metadataUri && !isError && (
           <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
             <h3 className="text-lg font-semibold mb-2">Contract Metadata (IPFS)</h3>
             <a
-              href={`https://ipfs.io/ipfs/${metadata}`}
+              href={`https://ipfs.io/ipfs/${metadataUri.replace("ipfs://", "")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 hover:underline"
             >
-              {metadata}
+              {metadataUri}
             </a>
           </div>
         )}
 
-        {imageUrl && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Metadata Image</h3>
+        {imageUrl && description && name && (
+          <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
+            <h3 className="text-lg font-semibold mb-2">{name}</h3>
             <Image
               src={imageUrl}
-              alt="Contract Metadata"
+              alt={name}
               width={400}
               height={400}
               className="rounded-lg"
             />
+            <p className="mt-2">{description}</p>
           </div>
         )}
       </div>
