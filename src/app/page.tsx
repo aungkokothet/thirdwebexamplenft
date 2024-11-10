@@ -1,11 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useContract } from "thirdweb/react";
+import { useState } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
 export default function Home() {
+  // State to store user inputs
+  const [contractAddress, setContractAddress] = useState("");
+  const [network, setNetwork] = useState("polygon"); // Default to polygon
+  const [metadata, setMetadata] = useState<string | null>(null);
+
+  // Function to read metadata from the contract
+  const fetchMetadata = async () => {
+    try {
+      // Define which chain to use based on selection
+      const chainId = network === "polygon" ? 137 : 80001; // Polygon mainnet or zkEVM-Cardano Testnet
+
+      const contract = await useContract(client, contractAddress, { chainId });
+      const data = await contract.call("contractURI");
+      setMetadata(data);
+    } catch (error) {
+      console.error("Failed to fetch metadata:", error);
+      setMetadata(null);
+    }
+  };
+
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
       <div className="py-20">
@@ -20,6 +41,58 @@ export default function Home() {
             }}
           />
         </div>
+
+        {/* Contract address input */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Contract Address
+          </label>
+          <input
+            type="text"
+            value={contractAddress}
+            onChange={(e) => setContractAddress(e.target.value)}
+            placeholder="Enter contract address"
+            className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
+          />
+        </div>
+
+        {/* Network selection */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Select Network
+          </label>
+          <select
+            value={network}
+            onChange={(e) => setNetwork(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
+          >
+            <option value="polygon">Polygon Mainnet</option>
+            <option value="zkevm">zkEVM-Cardano Testnet</option>
+          </select>
+        </div>
+
+        {/* Fetch metadata button */}
+        <button
+          onClick={fetchMetadata}
+          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium"
+        >
+          Fetch Contract Metadata
+        </button>
+
+        {/* Display the metadata result */}
+        {metadata && (
+          <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
+            <h3 className="text-lg font-semibold mb-2">Contract Metadata (IPFS)</h3>
+            <a
+              href={`https://ipfs.io/ipfs/${metadata}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              {metadata}
+            </a>
+          </div>
+        )}
 
         <ThirdwebResources />
       </div>
