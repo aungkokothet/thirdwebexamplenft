@@ -3,21 +3,36 @@
 import Image from "next/image";
 import { ConnectButton, useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
-import { polygon, zkevmTestnetCardona } from "thirdweb/chains"; // Corrected chain import name
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
-  const [network, setNetwork] = useState("polygon");
+  const [network, setNetwork] = useState("");
   const [metadata, setMetadata] = useState<string | null>(null);
+  const [chains, setChains] = useState([]);
+
+  useEffect(() => {
+    // Fetch the available chains
+    const fetchChains = async () => {
+      try {
+        const response = await fetch("https://api.thirdweb.com/v1/chains");
+        const data = await response.json();
+        setChains(data);
+      } catch (error) {
+        console.error("Failed to fetch chains:", error);
+      }
+    };
+
+    fetchChains();
+  }, []);
 
   // Set up contract based on selected network and address
   const contract = getContract({
     client,
     address: contractAddress,
-    chain: network === "polygon" ? polygon : zkevmTestnetCardona,
+    chain: chains.find((chain) => chain.chain_id === network),
   });
 
   // Use readContract to fetch contract metadata URI
@@ -74,8 +89,12 @@ export default function Home() {
             onChange={(e) => setNetwork(e.target.value)}
             className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
           >
-            <option value="polygon">Polygon Mainnet</option>
-            <option value="zkevm-testnet-cardona">zkEVM-Cardano Testnet</option>
+            <option value="" disabled>Select a network</option>
+            {chains.map((chain) => (
+              <option key={chain.chain_id} value={chain.chain_id}>
+                {chain.name}
+              </option>
+            ))}
           </select>
         </div>
 
