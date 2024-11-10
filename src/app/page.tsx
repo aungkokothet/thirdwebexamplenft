@@ -7,7 +7,7 @@ import { client } from "./client";
 import { defineChain } from "thirdweb";
 import Image from "next/image";
 
-const myChain = defineChain(1442); // Polygon zkEVM Testnet
+const myChain = defineChain(2442); // Polygon zkEVM Testnet
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
