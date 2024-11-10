@@ -5,6 +5,9 @@ const nextConfig = {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
   },
+  images: {
+    domains: ['ipfs.io'], // Allow images to be loaded from the ipfs.io domain
+  },
 };
 
 export default nextConfig;
