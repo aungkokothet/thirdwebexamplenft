@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { ConnectButton, useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
-import { polygon, zkevmTestnet } from "thirdweb/chains";
+import { polygon, zkevmTestnetCardona } from "thirdweb/chains"; // Corrected chain import name
 import { useState } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
@@ -17,7 +17,7 @@ export default function Home() {
   const contract = getContract({
     client,
     address: contractAddress,
-    chain: network === "polygon" ? polygon : zkevmTestnet,
+    chain: network === "polygon" ? polygon : zkevmTestnetCardona,
   });
 
   // Use readContract to fetch contract metadata URI
@@ -75,7 +75,7 @@ export default function Home() {
             className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
           >
             <option value="polygon">Polygon Mainnet</option>
-            <option value="zkevm">zkEVM-Cardano Testnet</option>
+            <option value="zkevm-testnet-cardona">zkEVM-Cardano Testnet</option>
           </select>
         </div>
 
