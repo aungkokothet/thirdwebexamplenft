@@ -11,32 +11,41 @@ const myChain = defineChain(2442); // Polygon zkEVM Testnet
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
-  const [metadataUri, setMetadataUri] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [description, setDescription] = useState<string | null>(null);
-  const [name, setName] = useState<string | null>(null);
-  const [isError, setIsError] = useState(false);
+  const [metadataUri, setMetadataUri] = useState<string | null>(null); // Stores the contract metadata URI
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Image URL extracted from metadata
+  const [description, setDescription] = useState<string | null>(null); // Description from metadata
+  const [name, setName] = useState<string | null>(null); // Name from metadata
+  const [isError, setIsError] = useState(false); // Error flag
 
+  // Setup the contract with the provided address
   const contract = getContract({
     client,
     address: contractAddress || "0x0000000000000000000000000000000000000000",
     chain: myChain,
   });
 
+  // Use thirdweb's hook to read the contractURI from the contract
   const { data, isLoading } = useReadContract({
     contract,
-    method: "function contractURI() view returns (string)",
+    method: "function contractURI() view returns (string)", // Assumes this is the correct method signature
   });
 
+  // Fetch metadata from IPFS when `data` (contractURI) is retrieved
   useEffect(() => {
     if (data) {
+      // Set metadata URI from the contract
       setMetadataUri(data);
 
-      // Fetch metadata from IPFS to retrieve the JSON data
+      // Fetch the JSON metadata using the metadata URI from IPFS
       fetch(`https://ipfs.io/ipfs/${data.replace("ipfs://", "")}`)
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) throw new Error("Failed to fetch metadata");
+          return response.json();
+        })
         .then((meta) => {
-          setImageUrl(meta.image.replace("ipfs://", "https://ipfs.io/ipfs/"));
+          // Construct a valid image URL from IPFS
+          const imageIpfsPath = meta.image.replace("ipfs://", "");
+          setImageUrl(`https://ipfs.io/ipfs/${imageIpfsPath}`);
           setDescription(meta.description);
           setName(meta.name);
           setIsError(false);
@@ -53,6 +62,7 @@ export default function Home() {
       <div className="py-20">
         <h1 className="text-3xl font-semibold text-white mb-6">Fetch Contract Metadata</h1>
 
+        {/* Contract Address Input */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Contract Address
@@ -66,6 +76,7 @@ export default function Home() {
           />
         </div>
 
+        {/* Fetch Button */}
         <button
           onClick={() => setMetadataUri(data || "Fetching...")}
           disabled={isLoading}
@@ -74,12 +85,14 @@ export default function Home() {
           {isLoading ? "Loading..." : "Fetch Contract Metadata"}
         </button>
 
+        {/* Error Message */}
         {isError && (
           <div className="mt-4 p-4 bg-red-600 text-white rounded">
             <p>Error loading metadata. Please try again later.</p>
           </div>
         )}
 
+        {/* Metadata URI Display */}
         {metadataUri && !isError && (
           <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
             <h3 className="text-lg font-semibold mb-2">Contract Metadata (IPFS)</h3>
@@ -94,6 +107,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* Display Image, Name, and Description from IPFS Metadata */}
         {imageUrl && description && name && (
           <div className="mt-4 p-4 bg-zinc-900 rounded text-white">
             <h3 className="text-lg font-semibold mb-2">{name}</h3>
