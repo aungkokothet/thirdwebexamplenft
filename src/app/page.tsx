@@ -8,6 +8,7 @@ import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 import { polygon, polygonZkEvmTestnet } from "thirdweb/chains";
 
+// Define the chains available
 const supportedChains = [
   { id: "polygon", name: "Polygon Mainnet", chain: polygon },
   { id: "polygon-zkevm-testnet", name: "Polygon zkEVM Testnet", chain: polygonZkEvmTestnet },
@@ -18,18 +19,18 @@ export default function Home() {
   const [network, setNetwork] = useState(supportedChains[0].id);
   const [metadata, setMetadata] = useState<string | null>(null);
 
-  const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain;
-  const contract = selectedChain && contractAddress
-    ? getContract({
-        client,
-        address: contractAddress,
-        chain: selectedChain,
-      })
-    : null;
+  const selectedChain = supportedChains.find((chain) => chain.id === network)?.chain || polygon;
 
+  const contract = getContract({
+    client,
+    address: contractAddress || "0x0000000000000000000000000000000000000000",
+    chain: selectedChain,
+  });
+
+  // Only call `resolveMethod("contractURI")` without conditions in hook
   const { data, isLoading } = useReadContract({
-    contract: contract ?? { address: "", client, chain: polygon },
-    method: contract ? resolveMethod("contractURI") : null,
+    contract,
+    method: resolveMethod("contractURI"),
   });
 
   useEffect(() => {
