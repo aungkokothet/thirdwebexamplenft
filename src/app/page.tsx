@@ -2,58 +2,36 @@
 
 import Image from "next/image";
 import { ConnectButton, useReadContract } from "thirdweb/react";
-import { getContract } from "thirdweb";
-import { useState, useEffect } from "react";
+import { getContract, resolveMethod } from "thirdweb";
+import { useState } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
-// Define the type for chain data
-interface Chain {
-  chain_id: string;
-  name: string;
-  rpc: string;
-}
+// Simple chain options with two networks: Polygon zkEVM Testnet and Polygon Mainnet
+const supportedChains = [
+  { id: "polygon", name: "Polygon Mainnet" },
+  { id: "polygon-zkevm-testnet", name: "Polygon zkEVM Testnet" },
+];
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
-  const [network, setNetwork] = useState("");
+  const [network, setNetwork] = useState(supportedChains[0].id);
   const [metadata, setMetadata] = useState<string | null>(null);
-  const [chains, setChains] = useState<Chain[]>([]); // Use Chain[] as the type for chains
 
-  useEffect(() => {
-    // Fetch the available chains
-    const fetchChains = async () => {
-      try {
-        const response = await fetch("https://api.thirdweb.com/v1/chains");
-        const data: Chain[] = await response.json(); // Cast response as Chain[]
-        setChains(data);
-      } catch (error) {
-        console.error("Failed to fetch chains:", error);
-      }
-    };
-
-    fetchChains();
-  }, []);
-
-  // Find the selected chain or default to the first chain if none is selected
-  const selectedChain = chains.find((chain) => chain.chain_id === network) || chains[0];
-
-  // Set up contract based on selected network and address
-  const contract = selectedChain
-    ? getContract({
-        client,
-        address: contractAddress,
-        chain: selectedChain,
-      })
-    : null;
-
-  // Use readContract to fetch contract metadata URI
-  const { data, isLoading } = useReadContract({
-    contract,
-    method: "function contractURI() view returns (string)",
-    params: [],
+  // Set up the contract object based on selected network and address
+  const contract = getContract({
+    client,
+    address: contractAddress,
+    chain: network,
   });
 
+  // Use readContract to fetch contract metadata URI with resolveMethod
+  const { data, isLoading } = useReadContract({
+    contract,
+    method: resolveMethod("contractURI"),
+  });
+
+  // Update metadata state when data is fetched
   const fetchMetadata = () => {
     if (data) {
       setMetadata(data);
@@ -101,9 +79,8 @@ export default function Home() {
             onChange={(e) => setNetwork(e.target.value)}
             className="w-full px-4 py-2 border border-gray-700 rounded bg-zinc-800 text-white"
           >
-            <option value="" disabled>Select a network</option>
-            {chains.map((chain) => (
-              <option key={chain.chain_id} value={chain.chain_id}>
+            {supportedChains.map((chain) => (
+              <option key={chain.id} value={chain.id}>
                 {chain.name}
               </option>
             ))}
