@@ -7,18 +7,25 @@ import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
 
+// Define the type for chain data
+interface Chain {
+  chain_id: string;
+  name: string;
+  rpc: string;
+}
+
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
   const [network, setNetwork] = useState("");
   const [metadata, setMetadata] = useState<string | null>(null);
-  const [chains, setChains] = useState([]);
+  const [chains, setChains] = useState<Chain[]>([]); // Use Chain[] as the type for chains
 
   useEffect(() => {
     // Fetch the available chains
     const fetchChains = async () => {
       try {
         const response = await fetch("https://api.thirdweb.com/v1/chains");
-        const data = await response.json();
+        const data: Chain[] = await response.json(); // Cast response as Chain[]
         setChains(data);
       } catch (error) {
         console.error("Failed to fetch chains:", error);
@@ -28,7 +35,7 @@ export default function Home() {
     fetchChains();
   }, []);
 
-  // Find the selected chain or default to a placeholder chain if undefined
+  // Find the selected chain or default to the first chain if none is selected
   const selectedChain = chains.find((chain) => chain.chain_id === network) || chains[0];
 
   // Set up contract based on selected network and address
