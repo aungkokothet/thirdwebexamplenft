@@ -6,7 +6,8 @@ import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
 import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
-import { polygonZkEvmTestnet } from "thirdweb/chains";
+import { defineChain } from "thirdweb";
+const myChain = defineChain(2442);
 
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
@@ -16,7 +17,7 @@ export default function Home() {
   const contract = getContract({
     client,
     address: contractAddress || "0x0000000000000000000000000000000000000000",
-    chain: polygonZkEvmTestnet,
+    chain: myChain,
   });
 
   // Directly specify the Solidity function signature for contractURI
