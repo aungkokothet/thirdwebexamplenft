@@ -3,7 +3,7 @@
 import { useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
-import { client } from "@/app/client"; ; 
+import { client } from "@/app/client"; // Absolute import for client.ts
 import { defineChain } from "thirdweb";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -11,7 +11,8 @@ import { useParams } from "next/navigation";
 const myChain = defineChain(2442); // Polygon zkEVM Testnet
 
 export default function ContractMetadataPage() {
-  const { contractAddress } = useParams(); // Get the contract address from the URL
+  const params = useParams();
+  const contractAddress = Array.isArray(params.contractAddress) ? params.contractAddress[0] : params.contractAddress;
 
   const [metadataUri, setMetadataUri] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export default function ContractMetadataPage() {
         {!contractAddress && (
           <div className="mt-4 p-4 bg-gray-800 text-white rounded">
             <p>Please add a contract address to the URL, like this:</p>
-            <code className="block mt-2 text-blue-400">https://yourdomain.com/[contractAddress]</code>
+            <code className="block mt-2 text-blue-400">https://yourdomain.com/app/[contractAddress]</code>
           </div>
         )}
 
