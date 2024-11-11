@@ -3,7 +3,7 @@
 import { useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
-import { client } from "src/app/client"; // Adjust path if necessary
+import { client } from "../../client"; 
 import { defineChain } from "thirdweb";
 import Image from "next/image";
 import { useParams } from "next/navigation";
