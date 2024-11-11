@@ -3,7 +3,7 @@
 import { useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { useState, useEffect } from "react";
-import { client } from "./client";
+import { client } from "../client"; // Adjust path if necessary
 import { defineChain } from "thirdweb";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -37,15 +37,13 @@ export default function Home() {
       })
     : null;
 
-  // Use thirdweb's hook to read the contractURI from the contract
-  const { data, isLoading } = useReadContract(
-    contract
-      ? {
-          contract,
-          method: "function contractURI() view returns (string)",
-        }
-      : null
-  );
+  // Fetch metadata using `useReadContract` only when `contract` is set
+  const { data, isLoading } = contract
+    ? useReadContract({
+        contract,
+        method: "function contractURI() view returns (string)",
+      })
+    : { data: null, isLoading: false }; // Default values if `contract` is null
 
   // Fetch metadata from IPFS when `data` (contractURI) is retrieved
   useEffect(() => {
