@@ -28,26 +28,22 @@ export default function Home() {
     }
   }, []);
 
-  // Initialize the contract only if contractAddress is set
-  const contract = contractAddress
-    ? getContract({
-        client,
-        address: contractAddress,
-        chain: myChain,
-      })
-    : null;
+  // Always initialize the contract, even if contractAddress is not set
+  const contract = getContract({
+    client,
+    address: contractAddress || "0x0000000000000000000000000000000000000000", // Placeholder address if not set
+    chain: myChain,
+  });
 
-  // Fetch metadata using `useReadContract` only when `contract` is set
-  const { data, isLoading } = contract
-    ? useReadContract({
-        contract,
-        method: "function contractURI() view returns (string)",
-      })
-    : { data: null, isLoading: false }; // Default values if `contract` is null
+  // Use thirdweb's hook to read the contractURI from the contract
+  const { data, isLoading } = useReadContract({
+    contract,
+    method: "function contractURI() view returns (string)",
+  });
 
   // Fetch metadata from IPFS when `data` (contractURI) is retrieved
   useEffect(() => {
-    if (data) {
+    if (data && contractAddress) {
       setMetadataUri(data);
 
       // Fetch the JSON metadata using the metadata URI from IPFS
@@ -68,7 +64,7 @@ export default function Home() {
           setIsError(true);
         });
     }
-  }, [data]);
+  }, [data, contractAddress]);
 
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
